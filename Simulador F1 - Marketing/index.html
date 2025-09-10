@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Driver - Marketing</title>
+    <link rel="icon" href="https://www.hergo.com.ar/img/favicon.png">
+    <link rel="shortcut icon" href="https://www.hergo.com.ar/img/favicon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="contenedor-principal">
+        <img src="/img/hergui-chico.png" alt="" class="hergui">
+        <div class="box">
+            <div id="felicitacion" class="felicitacion"></div>
+            <img src="/img/hergo-logo-blanco.svg" alt="Hergo Logo" class="logo">
+            <h1>Mini Juego - Test Driver</h1>
+            <div class="semaforo-f1">
+                <audio id="sonido" src="/sound/Mario Kart Start.mp3"></audio>
+                <audio id="audioGanar" src="/sound/mario-bros-woo-hoo.mp3"></audio>
+                <audio id="audioPerder" src="/sound/mario-kart-64.mp3"></audio>
+                <div class="semaforo-row">
+                    <div id="luz1-1" class="luz"></div>
+                    <div id="luz1-2" class="luz"></div>
+                    <div id="luz1-3" class="luz"></div>
+                    <div id="luz1-4" class="luz"></div>
+                </div>
+                <div class="semaforo-row">
+                    <div id="luz2-1" class="luz"></div>
+                    <div id="luz2-2" class="luz"></div>
+                    <div id="luz2-3" class="luz"></div>
+                    <div id="luz2-4" class="luz"></div>
+                </div>
+            </div>
+            <div id="cronometro"></div>
+            <div id="mensaje"></div>
+            <button id="reiniciar" disabled>Reiniciar</button>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
