@@ -1,128 +1,181 @@
+// --- CONSTANTES DE ELEMENTOS DEL SVG ---
 const filas = 2;
 const columnas = 4;
 
-// Obtiene los círculos en una matriz [fila][columna]
+// Obtiene las luces del semáforo (círculos SVG)
 const luces = [];
 for (let f = 0; f < filas; f++) {
     luces[f] = [];
     for (let c = 0; c < columnas; c++) {
-        luces[f][c] = document.getElementById(`luz${f + 1}-${c + 1}`);
+        luces[f][c] = document.getElementById(`luz-${f}-${c}`);
     }
 }
 
-const mensaje = document.getElementById("mensaje");
-const cronometro = document.getElementById("cronometro");
-const reiniciar = document.getElementById("reiniciar");
-const audio = document.getElementById('sonido');
-const audioGanar = document.getElementById('audioGanar');
-const audioPerder = document.getElementById('audioPerder');
-const felicitacion = document.getElementById("felicitacion");
+// Obtiene los elementos interactivos del SVG
+const cronometroTspan = document.getElementById("cronometro-texto");
+const cronometroTextElement = cronometroTspan.parentElement; // El elemento <text> padre
+const botonReiniciar = document.getElementById("boton-reiniciar");
+const mensajeResultado = document.getElementById("mensaje-resultado");
+const mensajeTexto = document.getElementById("mensaje-texto");
 
+// --- VARIABLES DE ESTADO DEL JUEGO ---
 let tiempo = 0;
 let intervalo = null;
-let corriendo = false;
-let puedeJugar = false;
+let estadoJuego = 'PREPARADO'; // Estados: PREPARADO, ANIMANDO, CONTANDO, FIN_JUEGO
 
-// Inicializa todos los círculos apagados
-function inicializarSemaforo() {
+// Clases de estilo del SVG
+const LUZ_APAGADA = "st0"; // Clase CSS para luz apagada (negro)
+const LUZ_ENCENDIDA = "st1"; // Clase CSS para luz encendida (rojo)
+const FUENTE_ORIGINAL_SIZE = "82.5px"; // Tamaño de .st6
+const FUENTE_PEQUENA_SIZE = "60px";   // Tamaño ajustado para "Presiona Enter"
+
+
+/**
+ * Resetea el juego a su estado inicial.
+ */
+function inicializarJuego() {
+    // Apaga todas las luces
     for (let f = 0; f < filas; f++) {
         for (let c = 0; c < columnas; c++) {
-            luces[f][c].style.background = "#222";
+            if (luces[f][c]) {
+                luces[f][c].setAttribute('class', LUZ_APAGADA);
+            }
         }
     }
-    mensaje.textContent = "Preparado...";
-    cronometro.textContent = "00.000";
-    reiniciar.disabled = true;
-    puedeJugar = false;
-    audio.pause();
-    audio.currentTime = 0;
-    ocultarFelicitacion();
+    
+    // Resetea UI
+    ocultarMensajeResultado();
+    cronometroTspan.textContent = "Presiona Enter";
+    // *** CAMBIO: Ajusta el tamaño de fuente ***
+    cronometroTextElement.style.fontSize = FUENTE_PEQUENA_SIZE; 
+    
+    tiempo = 0;
+    estadoJuego = 'PREPARADO';
 }
 
-// Animación: enciende cada círculo de la fila de abajo en rojo uno por uno con sonido
+/**
+ * Inicia la secuencia de animación del semáforo.
+ */
 function animarSemaforo() {
-    inicializarSemaforo();
-    mensaje.textContent = "Listo...";
-    audio.play();
+    // Apaga todas las luces (por si acaso)
+    for (let c = 0; c < columnas; c++) {
+        luces[1][c].setAttribute('class', LUZ_APAGADA);
+    }
+    
+    cronometroTspan.textContent = "Listo...";
+    // *** CAMBIO: Restaura el tamaño de fuente original ***
+    cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
+    estadoJuego = 'ANIMANDO'; 
 
     let index = 0;
 
     function encenderSiguiente() {
         if (index < columnas) {
-            luces[1][index].style.background = "red"; // Solo fila 2 (índice 1)
+            luces[1][index].setAttribute('class', LUZ_ENCENDIDA); // Solo fila 2 (índice 1)
             index++;
             setTimeout(encenderSiguiente, 1000); // 1 segundo por círculo
         } else {
-            // Apaga todos los círculos y detiene el sonido
-            audio.pause();
-            audio.currentTime = 0;
+            // Apaga todos los círculos
             setTimeout(() => {
                 for (let c = 0; c < columnas; c++) {
-                    luces[1][c].style.background = "#222";
+                    luces[1][c].setAttribute('class', LUZ_APAGADA);
                 }
-                mensaje.textContent = "¡YA!";
+                cronometroTspan.textContent = "¡YA!"; 
+                // *** CAMBIO: Asegura el tamaño de fuente original ***
+                cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
                 iniciarCronometro();
-                puedeJugar = true;
-                reiniciar.disabled = false;
-            }, 4); // Pequeña pausa antes de iniciar el cronómetro
+                estadoJuego = 'CONTANDO';
+            }, 500); // Pausa antes de iniciar
         }
     }
 
     encenderSiguiente();
 }
 
+/**
+ * Inicia el cronómetro.
+ */
 function iniciarCronometro() {
     tiempo = 0;
-    corriendo = true;
-    cronometro.textContent = "00.000";
+    cronometroTspan.textContent = "00.000";
+    // *** CAMBIO: Asegura el tamaño de fuente original ***
+    cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
+    
     intervalo = setInterval(() => {
         tiempo += 0.01;
-        cronometro.textContent = tiempo.toFixed(3);
+        let tiempoStr = tiempo.toFixed(3);
+        if (tiempo < 10) {
+            tiempoStr = "0" + tiempoStr;
+        }
+        cronometroTspan.textContent = tiempoStr;
     }, 10);
 }
 
-function mostrarFelicitacion() {
-    felicitacion.textContent = "¡Felicitaciones! Tiempo perfecto.";
-    felicitacion.style.display = "block";
-    // Oculta el mensaje normal si quieres
-    mensaje.textContent = "";
+/**
+ * Detiene el cronómetro y evalúa el resultado.
+ */
+function detenerCronometro() {
+    clearInterval(intervalo);
+    estadoJuego = 'FIN_JUEGO'; 
+
+    const objetivo = 2.000;
+    const diferencia = Math.abs(tiempo - objetivo);
+
+    if (diferencia < 0.0001) {
+        mostrarMensajeResultado("¡Tiempo perfecto!");
+    } else {
+        mostrarMensajeResultado(`Diferencia: ${diferencia.toFixed(3)}s`);
+    }
 }
 
-function ocultarFelicitacion() {
-    felicitacion.textContent = "";
-    felicitacion.style.display = "none";
+
+// --- FUNCIONES DE VISUALIZACIÓN DE MENSAJES ---
+
+function mostrarMensajeResultado(texto) {
+    mensajeTexto.textContent = texto;
+    mensajeResultado.style.display = 'block';
 }
+
+function ocultarMensajeResultado() {
+    mensajeTexto.textContent = '';
+    mensajeResultado.style.display = 'none';
+}
+
+
+// --- MANEJADOR DE INTERACCIÓN PRINCIPAL ---
+
+function manejarInteraccion() {
+    switch (estadoJuego) {
+        case 'PREPARADO':
+            animarSemaforo();
+            break;
+            
+        case 'CONTANDO':
+            detenerCronometro();
+            break;
+            
+        case 'FIN_JUEGO':
+            inicializarJuego();
+            break;
+
+        case 'ANIMANDO':
+            // No hacer nada
+            break;
+    }
+}
+
+// --- EVENT LISTENERS ---
 
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && corriendo && puedeJugar) {
-        clearInterval(intervalo);
-        corriendo = false;
-        puedeJugar = false;
-        const objetivo = 2.000;
-        const diferencia = Math.abs(tiempo - objetivo);
-        if (diferencia < 0.0001) {
-            mostrarFelicitacion();
-            audioGanar.currentTime = 0;
-            audioGanar.play();
-        } else {
-            mensaje.textContent = `Más suerte la próxima. Diferencia: ${diferencia.toFixed(3)}s`;
-            ocultarFelicitacion();
-            audioPerder.currentTime = 0;
-            audioPerder.play();
-        }
-        reiniciar.disabled = false;
+    if (e.key === "Enter") {
+        manejarInteraccion();
     }
 });
 
-reiniciar.addEventListener("click", () => {
-    inicializarSemaforo();
-    mensaje.textContent = "Comenzando...";
-    setTimeout(animarSemaforo, 800);
+botonReiniciar.addEventListener("click", () => {
+    manejarInteraccion();
 });
 
 window.onload = () => {
-    inicializarSemaforo();
-    setTimeout(animarSemaforo, 1200);
+    inicializarJuego();
 };
-
-
