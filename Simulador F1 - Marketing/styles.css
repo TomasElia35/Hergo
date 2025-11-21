@@ -1,25 +1,23 @@
-/*
-  Estilos mínimos para centrar el SVG y eliminar márgenes.
-  Toda la estética principal está definida DENTRO del archivo SVG.
-*/
 body {
     margin: 0;
     padding: 0;
-    background: #001a44; /* Color de fondo del SVG para evitar bordes blancos */
+    /* Usamos el color más oscuro del degradado para los bordes */
+    background-color: #000b24; 
+    height: 100vh;
+    width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    overflow: hidden; /* Evita barras de scroll */
+    overflow: hidden;
 }
 
-/* Asegura que el SVG se escale correctamente 
-  manteniendo su relación de aspecto.
-*/
 svg {
+    /* Esto permite que el SVG crezca al máximo manteniendo su proporción 16:9 */
     width: 100%;
-    height: 100vh;
-    max-width: 1920px; /* Ancho original */
-    max-height: 1080px; /* Alto original */
-    object-fit: contain;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    /* Mantiene la relación de aspecto visible sin recortar nada importante */
+    object-fit: contain; 
+    display: block;
 }

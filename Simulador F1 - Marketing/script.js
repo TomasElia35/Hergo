@@ -13,21 +13,23 @@ for (let f = 0; f < filas; f++) {
 
 // Obtiene los elementos interactivos del SVG
 const cronometroTspan = document.getElementById("cronometro-texto");
-const cronometroTextElement = cronometroTspan.parentElement; // El elemento <text> padre
+const cronometroTextElement = cronometroTspan.parentElement; 
 const botonReiniciar = document.getElementById("boton-reiniciar");
 const mensajeResultado = document.getElementById("mensaje-resultado");
 const mensajeTexto = document.getElementById("mensaje-texto");
+// Elemento nuevo para cambiar el color del cartel
+const cajaMensaje = document.getElementById("caja-mensaje");
 
 // --- VARIABLES DE ESTADO DEL JUEGO ---
 let tiempo = 0;
 let intervalo = null;
-let estadoJuego = 'PREPARADO'; // Estados: PREPARADO, ANIMANDO, CONTANDO, FIN_JUEGO
+let estadoJuego = 'PREPARADO'; 
 
 // Clases de estilo del SVG
-const LUZ_APAGADA = "st0"; // Clase CSS para luz apagada (negro)
-const LUZ_ENCENDIDA = "st1"; // Clase CSS para luz encendida (rojo)
-const FUENTE_ORIGINAL_SIZE = "82.5px"; // Tamaño de .st6
-const FUENTE_PEQUENA_SIZE = "60px";   // Tamaño ajustado para "Presiona Enter"
+const LUZ_APAGADA = "st0"; 
+const LUZ_ENCENDIDA = "st1"; 
+const FUENTE_ORIGINAL_SIZE = "82.5px"; 
+const FUENTE_PEQUENA_SIZE = "45px";   
 
 
 /**
@@ -46,9 +48,10 @@ function inicializarJuego() {
     // Resetea UI
     ocultarMensajeResultado();
     cronometroTspan.textContent = "Presiona Enter";
-    // *** CAMBIO: Ajusta el tamaño de fuente ***
-    cronometroTextElement.style.fontSize = FUENTE_PEQUENA_SIZE; 
     
+    cronometroTextElement.style.fontSize = FUENTE_PEQUENA_SIZE; 
+    cronometroTextElement.setAttribute("dy", "10"); 
+
     tiempo = 0;
     estadoJuego = 'PREPARADO';
 }
@@ -57,35 +60,33 @@ function inicializarJuego() {
  * Inicia la secuencia de animación del semáforo.
  */
 function animarSemaforo() {
-    // Apaga todas las luces (por si acaso)
     for (let c = 0; c < columnas; c++) {
         luces[1][c].setAttribute('class', LUZ_APAGADA);
     }
     
     cronometroTspan.textContent = "Listo...";
-    // *** CAMBIO: Restaura el tamaño de fuente original ***
     cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
+    cronometroTextElement.setAttribute("dy", "0");
+    
     estadoJuego = 'ANIMANDO'; 
 
     let index = 0;
 
     function encenderSiguiente() {
         if (index < columnas) {
-            luces[1][index].setAttribute('class', LUZ_ENCENDIDA); // Solo fila 2 (índice 1)
+            luces[1][index].setAttribute('class', LUZ_ENCENDIDA); 
             index++;
-            setTimeout(encenderSiguiente, 1000); // 1 segundo por círculo
+            setTimeout(encenderSiguiente, 1000); 
         } else {
-            // Apaga todos los círculos
             setTimeout(() => {
                 for (let c = 0; c < columnas; c++) {
                     luces[1][c].setAttribute('class', LUZ_APAGADA);
                 }
                 cronometroTspan.textContent = "¡YA!"; 
-                // *** CAMBIO: Asegura el tamaño de fuente original ***
                 cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
                 iniciarCronometro();
                 estadoJuego = 'CONTANDO';
-            }, 500); // Pausa antes de iniciar
+            }, 500); 
         }
     }
 
@@ -98,7 +99,6 @@ function animarSemaforo() {
 function iniciarCronometro() {
     tiempo = 0;
     cronometroTspan.textContent = "00.000";
-    // *** CAMBIO: Asegura el tamaño de fuente original ***
     cronometroTextElement.style.fontSize = FUENTE_ORIGINAL_SIZE;
     
     intervalo = setInterval(() => {
@@ -121,18 +121,25 @@ function detenerCronometro() {
     const objetivo = 2.000;
     const diferencia = Math.abs(tiempo - objetivo);
 
-    if (diferencia < 0.0001) {
-        mostrarMensajeResultado("¡Tiempo perfecto!");
+    // LOGICA GANAR/PERDER
+    // Usamos una tolerancia pequeña para flotantes (0.005) para que sea posible ganar
+    if (diferencia > 0.005) {
+        mostrarMensajeResultado("GANASTE", "win");
     } else {
-        mostrarMensajeResultado(`Diferencia: ${diferencia.toFixed(3)}s`);
+        mostrarMensajeResultado("PERDIO", "loss");
     }
 }
 
 
 // --- FUNCIONES DE VISUALIZACIÓN DE MENSAJES ---
 
-function mostrarMensajeResultado(texto) {
+function mostrarMensajeResultado(texto, tipo) {
     mensajeTexto.textContent = texto;
+    
+    // Asignar clase de color al rectángulo
+    // Reseteamos clase base y añadimos la específica
+    cajaMensaje.setAttribute("class", "modal-box " + tipo);
+
     mensajeResultado.style.display = 'block';
 }
 
